@@ -1,0 +1,12 @@
+{
+  "name": "TNet",
+  "tree": {
+    "$className": "DataModel",
+    "ReplicatedStorage":{
+      "$className": "ReplicatedStorage",
+      "TNet": {
+        "$path": "src"
+      }
+    }
+  }
+}
