@@ -1,4 +1,5 @@
 local RunService = game:GetService("RunService")
+local Players = game:GetService("Players")
 
 local Dependencies = script:WaitForChild("Dependencies")
 local ConnectionCreator = require(Dependencies.Connection)
@@ -62,8 +63,8 @@ end
 
 function NetSignalEvent:FireAllClients(...)
   assert(RunService:IsServer(), "FireAllClients can only be called on the server.")
-  self:HandleOutboundRequest(game:GetPlayers(), ...)
-  self.Event:FireAllClients(game:GetPlayers(), ...)
+  self:HandleOutboundRequest(Players:GetPlayers(), ...)
+  self.Event:FireAllClients(Players:GetPlayers(), ...)
 end
 
 function NetSignalEvent:FireToGroup(group, ...)
