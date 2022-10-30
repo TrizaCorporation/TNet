@@ -114,7 +114,7 @@ function NetSignal:HandleInboundRequest(player, ...)
       task.spawn(func, player, self.Event, {...})
     end
   end
-  task.wait()
+  RunService.Stepped:Wait()
   for _, connection in self.Connections do
     if connection.Function then
       return connection.Function(player, ...)
