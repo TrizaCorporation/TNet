@@ -98,7 +98,9 @@ function NetSignalFunction:Fire(...)
   end
 end
 
-function NetSignal:HandleInboundRequest(player, ...)
+function NetSignal:HandleInboundRequest(...)
+  local Data = {...}
+  local player = Data[1]
   if self.Middleware and self.Middleware.RequestsPerMinute then
     if not self.RequestsLeft then
       self.RequestsLeft = self.Middleware.RequestsPerMinute
@@ -111,13 +113,21 @@ function NetSignal:HandleInboundRequest(player, ...)
   end
   if self.Middleware and self.Middleware.Inbound then
     for _, func in self.Middleware.Inbound do
-      task.spawn(func, player, self.Event, {...})
+      if RunService:IsServer() then
+        task.spawn(func, player, self.Event, {...})
+      else
+        task.spawn(func, self.Event, {...})
+      end
     end
   end
   RunService.Stepped:Wait()
   for _, connection in self.Connections do
     if connection.Function then
-      return connection.Function(player, ...)
+      if RunService:IsServer() then
+        return connection.Function(player, ...)
+      else
+        return connection.Function(...)
+      end
     else
       table.remove(self.Connections, table.find(self.Connections, connection))
     end
