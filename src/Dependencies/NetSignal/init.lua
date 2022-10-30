@@ -22,7 +22,7 @@ function NetSignal.new(type: string, event)
     end)
   elseif type == "Function" then
     event[string.format("On%sInvoke", RunService:IsServer() and "Server" or "Client")] = function(player, ...)
-      self:HandleInboundRequest(player, ...)
+      return self:HandleInboundRequest(player, ...)
     end
   end
   self.MiddlewareCoroutine = coroutine.create(function()
@@ -114,9 +114,10 @@ function NetSignal:HandleInboundRequest(player, ...)
       task.spawn(func, player, self.Event, {...})
     end
   end
+  task.wait()
   for _, connection in self.Connections do
     if connection.Function then
-      task.spawn(connection.Function, player, ...)
+      return connection.Function(player, ...)
     else
       table.remove(self.Connections, table.find(self.Connections, connection))
     end
