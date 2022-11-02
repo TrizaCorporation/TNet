@@ -16,6 +16,7 @@ function NetSignal.new(type: string, event)
   local self = setmetatable({}, NetSignal)
   self.Event = event
   self.Connections = {}
+  self.RequestLimits = {}
   if type == "Event" then
     event[string.format("On%sEvent", RunService:IsServer() and "Server" or "Client")]:Connect(function(player, ...)
       self:HandleInboundRequest(player, ...)
@@ -28,12 +29,16 @@ function NetSignal.new(type: string, event)
   self.MiddlewareCoroutine = coroutine.create(function()
     while true do
       if self.Middleware and self.Middleware.RequestsPerMinute then
-        self.RequestsLeft = self.Middleware.RequestsPerMinute
+        for player, _ in RequestLimits do
+          self.RequestLimits[player] = self.Middleware.RequestsPerMinute
+        end
       end
       task.wait(60)
     end
   end)
-  coroutine.resume(self.MiddlewareCoroutine)
+  if RunService:IsServer() then
+    coroutine.resume(self.MiddlewareCoroutine)
+  end
   for property, value in type == "Event" and NetSignalEvent or NetSignalFunction do
     if typeof(value) == "function" then
       self[property] = value
@@ -101,14 +106,16 @@ end
 function NetSignal:HandleInboundRequest(...)
   local Data = {...}
   local player = Data[1]
-  if self.Middleware and self.Middleware.RequestsPerMinute then
-    if not self.RequestsLeft then
-      self.RequestsLeft = self.Middleware.RequestsPerMinute
-    end
-    if self.RequestsLeft > 0 then
-      self.RequestsLeft -= 1
-    else
-      error("Rate Limit Reached.")
+  if RunService:IsServer() then
+    if self.Middleware and self.Middleware.RequestsPerMinute then
+      if not self.RequestLimits[player] then
+        self.RequestLimits[player] = self.Middleware.RequestsPerMinute
+      end
+      if self.RequestLimits[player] > 0 then
+        self.RequestLimits[player] -= 1
+      else
+        error("Rate Limit Reached.")
+      end
     end
   end
   if self.Middleware and self.Middleware.Inbound then
