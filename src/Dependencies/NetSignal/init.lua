@@ -29,7 +29,7 @@ function NetSignal.new(type: string, event)
   self.MiddlewareCoroutine = coroutine.create(function()
     while true do
       if self.Middleware and self.Middleware.RequestsPerMinute then
-        for player, _ in RequestLimits do
+        for player, _ in self.RequestLimits do
           self.RequestLimits[player] = self.Middleware.RequestsPerMinute
         end
       end
